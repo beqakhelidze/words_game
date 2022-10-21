@@ -1,4 +1,3 @@
-import { View, Text } from "react-native";
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import JoinRoom from "./JoinRoom";
 import CreateRoom from "./CreateRoom";
