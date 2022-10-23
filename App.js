@@ -8,9 +8,11 @@ import {
   StyleSheet,
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Default from "./screens/Default";
+import Gaming from './screens/Gaming';
 
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
@@ -20,7 +22,15 @@ export default function App() {
         backgroundColor="rgba(0,0,0,0.5)"
         hidden={false} />
       <NavigationContainer>
-        <Default />
+        <Stack.Navigator
+          initialRouteName="default"
+          screenOptions={{
+            headerShown: false
+          }}
+        >
+          <Stack.Screen name="default" component={Default} />
+          <Stack.Screen name="gaming" component={Gaming} />
+        </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaView>
   );

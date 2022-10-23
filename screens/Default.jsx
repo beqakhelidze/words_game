@@ -4,10 +4,11 @@ import CreateRoom from "./CreateRoom";
 
 const Tab = createMaterialTopTabNavigator();
 
-const Default = () => {
+const Default = ({navigation}) => {
+
     return ( 
         <Tab.Navigator>
-          <Tab.Screen name="Create room" component={CreateRoom} />
+          <Tab.Screen name="Create room" component={CreateRoom}  />
           <Tab.Screen name="Join room" component={JoinRoom} />
         </Tab.Navigator>
      );

@@ -9,16 +9,32 @@ import {
 import {
     useState
 } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Checkbox from 'expo-checkbox';
 import GlobalStyles from "../styles";
+import { postRequest } from "../apiConnection";
 
 
-const CreateRoom = () => {
+const CreateRoom = ({ navigation }) => {
 
     const [Players, setPlayers] = useState("");
     const [Duration, setDuration] = useState("");
     const [isHintsChecked, setHintsChecked] = useState(false);
     const [isCustomWordsChecked, setCustomWordsChecked] = useState(false);
+
+    const createRoom = async () => {
+        postRequest("rooms", {
+            maxPlayers: Players,
+            gameDurationSeconds: Duration,
+            disableHints: isHintsChecked,
+            customWords: isCustomWordsChecked
+        }).then(async (data) => {
+            await AsyncStorage.setItem('RoomKey', data.key);
+            navigation.navigate("gaming");
+        }).catch((error) =>{
+            console.log(error);
+        })
+    }
 
     return (
         <View style={GlobalStyles.container}>
@@ -26,12 +42,12 @@ const CreateRoom = () => {
             <View style={GlobalStyles.form}>
                 <TextInput style={GlobalStyles.input}
                     value={Players}
-                    onChange={setPlayers}
+                    onChangeText={setPlayers}
                     placeholder={"Max Players"}
                     keyboardType="number-pad" />
                 <TextInput style={GlobalStyles.input}
                     value={Duration}
-                    onChange={setDuration}
+                    onChangeText={setDuration}
                     placeholder={"Game Guration (Seconds)"}
                     keyboardType="number-pad" />
                 <View
@@ -61,7 +77,7 @@ const CreateRoom = () => {
             </View>
             <TouchableOpacity
                 style={GlobalStyles.button}
-                onPress={() => {}}
+                onPress={createRoom}
             >
                 <Text style={GlobalStyles.button.text}>Create</Text>
             </TouchableOpacity>
