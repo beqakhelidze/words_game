@@ -1,19 +1,20 @@
 import axios from "axios";
+import BASE_URL from "./baseUrl";
 
-axios.defaults.baseURL = "http://192.168.100.99:3000";
+axios.defaults.baseURL = BASE_URL;
 
 export const postRequest = async (URL, params) => {
 
-    const response = await axios.post(URL, {
-        headers: {
-            "Content-Type": "application/json",
-        },
-        params: params,
-    }).then((response) => {
+    console.log(URL);
+
+    const response = await axios.post(URL).then((response) => {
         return response.data;
     }).catch((error) => {
+        console.log(error.response.data)
         return (error);
     })
+
+    console.log(response);
 
     return response;
 }

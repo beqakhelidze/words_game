@@ -1,1 +1,2 @@
-export * from "./postRequest";
+export {postRequest} from "./postRequest";
+export {putRequest} from "./putRequest";

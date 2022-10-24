@@ -6,16 +6,23 @@ import {
     Button,
     TouchableOpacity
 } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
     useState
 } from "react";
 import GlobalStyles from "../styles";
 
 
-const JoinRoom = () => {
+const JoinRoom = ({navigation}) => {
 
     const [roomKey, setRoomKey] = useState("");
     const [username, setUsername] = useState("");
+
+    const JoinRoom = async () => {
+        await AsyncStorage.setItem('RoomKey', roomKey);
+        await AsyncStorage.setItem('Username', username);
+        navigation.navigate("gaming");
+    }
 
     return (
         <View style={GlobalStyles.container}>
@@ -23,17 +30,16 @@ const JoinRoom = () => {
             <View style={GlobalStyles.form}>
                 <TextInput style={GlobalStyles.input}
                     value={roomKey}
-                    onChange={setRoomKey}
-                    placeholder={"Room Key"}
-                    keyboardType="number-pad" />
+                    onChangeText={setRoomKey}
+                    placeholder={"Room Key"}/>
                 <TextInput style={GlobalStyles.input}
                     value={username}
-                    onChange={setUsername}
+                    onChangeText={setUsername}
                     placeholder={"Username"} />
             </View>
             <TouchableOpacity
                 style={GlobalStyles.button}
-                onPress={() => { }}
+                onPress={JoinRoom}
             >
                 <Text style={GlobalStyles.button.text}>Join</Text>
             </TouchableOpacity>

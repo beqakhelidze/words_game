@@ -5,6 +5,9 @@ export default GlobalStyles = StyleSheet.create({
         flex: 1,
         alignItems: "center",
     },
+    flexDirectionRow:{
+        flexDirection:"row"
+    },
     Title: {
         fontSize: 30,
         marginVertical: 20,
