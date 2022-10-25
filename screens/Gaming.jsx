@@ -1,10 +1,17 @@
 import { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    TextInput,
+    ActivityIndicator,
+} from "react-native";
 import GlobalStyles from "../styles";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import io from 'socket.io-client';
-import Participants from "./Participants";
-import { putRequest } from "../apiConnection/putRequest";
+import GameInformation from "./GameInformation";
+import { postRequest } from "../apiConnection/postRequest";
 
 let socket;
 
@@ -22,40 +29,57 @@ const setSocket = async () => {
 
 const Gaming = ({ navigation }) => {
 
-    const [gameInfo, setGameInfo] = useState({});
-    const [seeParticipants, setSeeParticipants] = useState(false);
+    const [mainInformation, setMainInformation] = useState(undefined);
     const [participants, setParticipants] = useState([]);
+    const [customWords, setCustomWords] = useState("");
+    const [customWord, setCustomWord] = useState("");
 
     const setEvents = async () => {
         await setSocket();
 
         socket.on("connection.error", (data) => {
+            console.log(data);
             navigation.navigate("default");
         })
 
         socket.on("game.data.received", (data) => {
-            console.log(data);
+            console.log(data.participants);
             setParticipants(data.participants);
+            setCustomWords(data.customWords);
             delete data.participants;
-            setGameInfo(data);
+            delete data.customWords;
+            setMainInformation(data);
         })
 
-        socket.on("participant.ready", (data) =>{
+        socket.on("participant.ready", (data) => {
             setParticipantReady(data.username);
+        })
+
+        socket.on("participant.joined", (data) =>{
+            console.log(data);
+            addNewParticipant(data);
+        })
+
+        socket.on("game.started").on()
+    }
+
+    const addNewParticipant = (newUser) => {
+        setParticipants((prev) => {
+            return [...prev, newUser];
         })
     }
 
     const setParticipantReady = (username) => {
-        setParticipants((prev) =>{
+        setParticipants((prev) => {
             return prev.map(element => {
-                return element.username == username ? {...element, isReady:true}: element;
+                return element.username == username ? { ...element, isReady: true } : element;
             })
         })
     }
 
-    const setReady = async () => {
+    const addCustomWord = async () => {
         const key = await AsyncStorage.getItem('RoomKey');
-        const response = putRequest("rooms/ready?id="+gameInfo.id+"&key="+key)
+        const Response = postRequest("rooms/word/id=" + mainInformation.id + "&key=" + key + "&word=" + customWord);
     }
 
     useEffect(() => {
@@ -63,58 +87,45 @@ const Gaming = ({ navigation }) => {
     }, []);
 
 
+    if (!mainInformation) {
+        return (
+            <View style={styles.container}>
+                <ActivityIndicator size="large" color="#1976d2" />
+            </View>
+        )
+    }
+
     return (
         <View style={GlobalStyles.container}>
-            <View style={styles.gameInfo}>
-                <View style={styles.gameInfo.section}>
-                    <Text style={styles.gameInfo.section.text}>Max Players:{gameInfo.maxPlayers}</Text>
-                    <Text style={styles.gameInfo.section.text}>Duration:{gameInfo.gameDurationSeconds}</Text>
-                </View>
-                <View style={styles.gameInfo.section}>
-                    <Text style={styles.gameInfo.section.text}>
-                        Custom Words mode:{gameInfo.customWords ? "on" : "off"}
-                    </Text>
-                    <Text style={styles.gameInfo.section.text}>
-                        Hints enabled mode:{gameInfo.hintsEnabled ? "on" : "off"}
-                    </Text>
-                </View>
-            </View>
+            <GameInformation mainInformation={mainInformation}
+                participants={participants}
+                customWords={customWords}
+            />
 
-            <View style={GlobalStyles.flexDirectionRow}>
+            {typeof (customWords) === "number" && <View style={{ flexDirection: "row" }}>
+                <TextInput style={{ ...GlobalStyles.input, width: "60%" }}
+                    value={customWords}
+                    onChangeText={setCustomWord}
+                    placeholder={"Custom Word"} />
                 <TouchableOpacity
                     style={GlobalStyles.button}
-                    onPress={() => setSeeParticipants(true)}
+                    onPress={addCustomWord}
                 >
-                    <Text style={GlobalStyles.button.text}>See Participants</Text>
+                    <Text style={GlobalStyles.button.text}>Add</Text>
                 </TouchableOpacity>
+            </View>}
 
-                <TouchableOpacity
-                    style={GlobalStyles.button}
-                    onPress={setReady}
-                >
-                    <Text style={GlobalStyles.button.text}>Ready</Text>
-                </TouchableOpacity>
-            </View>
-
-            {seeParticipants && <Participants modalVisible={seeParticipants}
-                setModalVisible={setSeeParticipants}
-                participants={participants} />}
 
         </View>
     );
 }
 
+
 const styles = StyleSheet.create({
-    gameInfo: {
-        flexDirection: "row",
-        section: {
-            flex: 1,
-            alignItems: "center",
-            text: {
-                fontSize: 17,
-            }
-        }
-    }
-})
+    container: {
+        flex: 1,
+        justifyContent: "center"
+    },
+});
 
 export default Gaming;

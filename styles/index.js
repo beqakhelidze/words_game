@@ -5,6 +5,9 @@ export default GlobalStyles = StyleSheet.create({
         flex: 1,
         alignItems: "center",
     },
+    mainColor: {
+        color:"#1976d2",
+    },
     flexDirectionRow:{
         flexDirection:"row"
     },
@@ -36,11 +39,12 @@ export default GlobalStyles = StyleSheet.create({
     button: {
         fontSize:20,
         backgroundColor:"#1976d2",
-        padding:10,
+        padding:8,
         borderRadius:6,
         margin:10,
+        alignItems:"center",
         text:{
-            fontSize:20,
+            fontSize:18,
             color:"white",
         }
     }

@@ -20,6 +20,7 @@
     "expo-status-bar": "~1.4.0",
     "react": "18.0.0",
     "react-native": "0.69.6",
+    "react-native-network-info": "^5.2.1",
     "react-native-pager-view": "5.4.24",
     "react-native-tab-view": "^3.3.0",
     "socket.io-client": "^4.5.3"

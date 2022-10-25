@@ -4,9 +4,11 @@ import {
     StyleSheet,
     TextInput,
     Button,
-    TouchableOpacity
+    TouchableOpacity,
+    ToastAndroid
 } from "react-native";
 import {
+    useEffect,
     useState
 } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -14,30 +16,62 @@ import Checkbox from 'expo-checkbox';
 import GlobalStyles from "../styles";
 import { postRequest } from "../apiConnection";
 
+const Toast = ({ visible, message }) => {
+    if (visible) {
+        ToastAndroid.showWithGravityAndOffset(
+            message,
+            ToastAndroid.LONG,
+            ToastAndroid.BOTTOM,
+            25,
+            50
+        );
+        return null;
+    }
+    return null;
+};
 
 const CreateRoom = ({ navigation }) => {
 
-    const [username, setUsername] = useState("");
-    const [Players, setPlayers] = useState("");
-    const [Duration, setDuration] = useState("");
+    const [username, setUsername] = useState("Guest");
+    const [Players, setPlayers] = useState(5);
+    const [Duration, setDuration] = useState(44);
     const [isHintsChecked, setHintsChecked] = useState(false);
     const [isCustomWordsChecked, setCustomWordsChecked] = useState(false);
+    const [visibleToast, setVisibleToast] = useState({
+        visibility: false,
+        message: "",
+    });
+
+   
+    const throwError = (value) => {
+        setVisibleToast({
+            visibility: true,
+            message: value,
+            
+        });
+    }
 
     const createRoom = async () => {
+
+        if (!username) {
+            throwError("Username is required!")
+            return;
+        }
 
         postRequest("rooms?maxPlayers=" + Players +
             "&gameDurationSeconds=" + Duration +
             "&disableHints=" + isHintsChecked +
             "&customWords=" + isCustomWordsChecked).then(async (data) => {
+                console.log(data.key);
                 await AsyncStorage.setItem('RoomKey', data.key);
                 await AsyncStorage.setItem('Username', username);
                 navigation.navigate("gaming");
             }).catch((error) => {
-                console.log(error);
+                throwError(error[0]);
             })
     }
 
-    console.log(isHintsChecked,isCustomWordsChecked);
+
 
     return (
         <View style={GlobalStyles.container}>
@@ -48,12 +82,12 @@ const CreateRoom = ({ navigation }) => {
                     onChangeText={setUsername}
                     placeholder={"Username"} />
                 <TextInput style={GlobalStyles.input}
-                    value={Players}
+                    value={Players.toString()}
                     onChangeText={setPlayers}
                     placeholder={"Max Players"}
                     keyboardType="number-pad" />
                 <TextInput style={GlobalStyles.input}
-                    value={Duration}
+                    value={Duration.toString()}
                     onChangeText={setDuration}
                     placeholder={"Game Guration (Seconds)"}
                     keyboardType="number-pad" />
@@ -89,6 +123,9 @@ const CreateRoom = ({ navigation }) => {
                 <Text style={GlobalStyles.button.text}>Create</Text>
             </TouchableOpacity>
 
+            <View style={styles.container}>
+                <Toast visible={visibleToast.visibility} message={visibleToast.message} />
+            </View>
         </View>
     );
 }
