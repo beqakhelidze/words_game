@@ -4,16 +4,17 @@ import GlobalStyles from "../styles";
 
 const ParticipantItem = ({ item }) => (
     <View style={{
-        flexDirection:"row",
+        flexDirection: "row",
+        margin:10,
     }}>
         <Text style={{
             color: item.isReady ? "green" : "red",
-            fontSize:18,
-            marginRight:5,
+            fontSize: 22,
+            marginRight: 5,
         }}>{'\u2022'}</Text>
         <Text style={{
             color: item.isReady ? "green" : "red",
-            fontSize:18,
+            fontSize: 22,
         }}>{item.username}</Text>
     </View>
 )
@@ -33,7 +34,7 @@ const Participants = ({ modalVisible, setModalVisible, participants }) => {
             >
                 <View style={styles.centeredView}>
                     <View style={styles.modalView}>
-                        {participants.map((item,index) => {
+                        {participants.map((item, index) => {
                             return (<ParticipantItem key={index} item={item} />)
                         })}
                         <TouchableOpacity
@@ -61,6 +62,7 @@ const styles = StyleSheet.create({
         backgroundColor: "white",
         borderRadius: 20,
         padding: 35,
+        paddingBottom:15,
         alignItems: "center",
         shadowColor: "#000",
         shadowOffset: {

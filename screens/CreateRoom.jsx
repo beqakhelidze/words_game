@@ -3,12 +3,10 @@ import {
     Text,
     StyleSheet,
     TextInput,
-    Button,
     TouchableOpacity,
     ToastAndroid
 } from "react-native";
 import {
-    useEffect,
     useState
 } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -30,6 +28,7 @@ const Toast = ({ visible, message }) => {
     return null;
 };
 
+
 const CreateRoom = ({ navigation }) => {
 
     const [username, setUsername] = useState("Guest");
@@ -42,12 +41,11 @@ const CreateRoom = ({ navigation }) => {
         message: "",
     });
 
-   
+
     const throwError = (value) => {
         setVisibleToast({
             visibility: true,
             message: value,
-            
         });
     }
 
@@ -123,7 +121,7 @@ const CreateRoom = ({ navigation }) => {
                 <Text style={GlobalStyles.button.text}>Create</Text>
             </TouchableOpacity>
 
-            <View style={styles.container}>
+            <View>
                 <Toast visible={visibleToast.visibility} message={visibleToast.message} />
             </View>
         </View>

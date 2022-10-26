@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
     View,
     Text,
@@ -6,14 +6,20 @@ import {
     TouchableOpacity,
     TextInput,
     ActivityIndicator,
+    Image
 } from "react-native";
 import GlobalStyles from "../styles";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import io from 'socket.io-client';
 import GameInformation from "./GameInformation";
+// import {Images} from "../Components/images";
 import { postRequest } from "../apiConnection/postRequest";
 
 let socket;
+
+const stringReplaceAt = (str, index, replacement) => {
+    return str.substring(0, index) + replacement + str.substring(index + replacement.length);
+}
 
 const setSocket = async () => {
 
@@ -33,17 +39,18 @@ const Gaming = ({ navigation }) => {
     const [participants, setParticipants] = useState([]);
     const [customWords, setCustomWords] = useState("");
     const [customWord, setCustomWord] = useState("");
+    const [hintString, setHintString] = useState("______");
 
     const setEvents = async () => {
         await setSocket();
 
         socket.on("connection.error", (data) => {
-            console.log(data);
-            navigation.navigate("default");
+            navigation.navigate("Join room",{
+                errorMessage:data.reason,
+            });
         })
 
         socket.on("game.data.received", (data) => {
-            console.log(data.participants);
             setParticipants(data.participants);
             setCustomWords(data.customWords);
             delete data.participants;
@@ -55,17 +62,39 @@ const Gaming = ({ navigation }) => {
             setParticipantReady(data.username);
         })
 
-        socket.on("participant.joined", (data) =>{
-            console.log(data);
+        socket.on("participant.joined", (data) => {
             addNewParticipant(data);
         })
 
-        socket.on("game.started").on()
+        socket.on("participant.left", (data) => {
+            removeParticipant(data.username);
+        })
+
+        socket.on("game.started", (data) => {
+            console.log(data);
+        })
+
+        socket.on("word.added", (data) => {
+            setCustomWords(data.wordCount)
+            console.log(data);
+        })
     }
 
-    const addNewParticipant = (newUser) => {
+    const addNewParticipant = (value) => {
         setParticipants((prev) => {
-            return [...prev, newUser];
+            if (prev.find(user => user.username === value.username)) {
+                return prev;
+            } else {
+                return [...prev, value];
+            }
+        })
+    }
+
+    const removeParticipant = (value) => {
+        setParticipants((prev) => {
+            return prev.filter((user) => {
+                return user.username !== value
+            })
         })
     }
 
@@ -79,11 +108,20 @@ const Gaming = ({ navigation }) => {
 
     const addCustomWord = async () => {
         const key = await AsyncStorage.getItem('RoomKey');
-        const Response = postRequest("rooms/word/id=" + mainInformation.id + "&key=" + key + "&word=" + customWord);
+        console.log("rooms/word?id="+ mainInformation.id + "&key=" + key + "&word=" + customWord);
+        await postRequest("rooms/word?id=" 
+        + mainInformation.id 
+        + "&key=" + key
+        + "&word=" + customWord).catch((error) =>{
+            console.log("egaa",error)
+        });
     }
 
     useEffect(() => {
         setEvents();
+        return () => {
+            socket.disconnect();
+        }
     }, []);
 
 
@@ -114,7 +152,6 @@ const Gaming = ({ navigation }) => {
                     <Text style={GlobalStyles.button.text}>Add</Text>
                 </TouchableOpacity>
             </View>}
-
 
         </View>
     );

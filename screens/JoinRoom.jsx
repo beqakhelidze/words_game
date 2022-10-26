@@ -4,25 +4,56 @@ import {
     StyleSheet,
     TextInput,
     Button,
-    TouchableOpacity
+    TouchableOpacity,
+    ToastAndroid
 } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRoute } from "@react-navigation/native";
 import {
+    useEffect,
     useState
 } from "react";
 import GlobalStyles from "../styles";
 
+const Toast = ({ visible, message }) => {
+    if (visible) {
+        ToastAndroid.showWithGravityAndOffset(
+            message,
+            ToastAndroid.LONG,
+            ToastAndroid.BOTTOM,
+            25,
+            50
+        );
+        return null;
+    }
+    return null;
+};
 
-const JoinRoom = ({navigation}) => {
+
+const JoinRoom = ({ navigation }) => {
 
     const [roomKey, setRoomKey] = useState("");
     const [username, setUsername] = useState("");
+    const [visibleToast, setVisibleToast] = useState({
+        visibility: false,
+        message: "",
+    });
+    const route = useRoute();
 
     const JoinRoom = async () => {
         await AsyncStorage.setItem('RoomKey', roomKey);
         await AsyncStorage.setItem('Username', username);
         navigation.navigate("gaming");
     }
+
+    useEffect(() => {
+        if (route.params){
+            setVisibleToast({
+                visibility:true,
+                message:route.params.errorMessage
+            })
+        }
+    },[route])
 
     return (
         <View style={GlobalStyles.container}>
@@ -31,7 +62,7 @@ const JoinRoom = ({navigation}) => {
                 <TextInput style={GlobalStyles.input}
                     value={roomKey}
                     onChangeText={setRoomKey}
-                    placeholder={"Room Key"}/>
+                    placeholder={"Room Key"} />
                 <TextInput style={GlobalStyles.input}
                     value={username}
                     onChangeText={setUsername}
@@ -43,6 +74,10 @@ const JoinRoom = ({navigation}) => {
             >
                 <Text style={GlobalStyles.button.text}>Join</Text>
             </TouchableOpacity>
+
+            <View >
+                <Toast visible={visibleToast.visibility} message={visibleToast.message} />
+            </View>
 
         </View>
     );

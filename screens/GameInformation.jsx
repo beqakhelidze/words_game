@@ -63,11 +63,13 @@ const styles = StyleSheet.create({
         justifyContent:"center",
         textAlign:"center",
         alignItems:"center",
+        marginTop:6,
     },
     gameInfo: {
+        width:"90%",
         flexDirection: "row",
+        justifyContent:"space-evenly",
         section: {
-            alignItems: "center",
             marginHorizontal: 10,
             text: {
                 fontSize: 17,
