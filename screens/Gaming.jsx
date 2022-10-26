@@ -11,9 +11,11 @@ import {
 import GlobalStyles from "../styles";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import io from 'socket.io-client';
-import GameInformation from "./GameInformation";
-// import {Images} from "../Components/images";
+import GameInformation from "../Components/GameInformation";
+import Images from "../Components/images";
 import { postRequest } from "../apiConnection/postRequest";
+import GuessAnswer from "../Components/guessAnswer";
+import CustomWord from "../Components/customWord";
 
 let socket;
 
@@ -38,18 +40,17 @@ const Gaming = ({ navigation }) => {
     const [mainInformation, setMainInformation] = useState(undefined);
     const [participants, setParticipants] = useState([]);
     const [customWords, setCustomWords] = useState("");
-    const [customWord, setCustomWord] = useState("");
     const [hintString, setHintString] = useState("______");
+    const [images, setImages] = useState([]);
 
     const setEvents = async () => {
         await setSocket();
 
         socket.on("connection.error", (data) => {
-            navigation.navigate("Join room",{
-                errorMessage:data.reason,
+            navigation.navigate("Join room", {
+                errorMessage: data.reason,
             });
         })
-
         socket.on("game.data.received", (data) => {
             setParticipants(data.participants);
             setCustomWords(data.customWords);
@@ -57,26 +58,24 @@ const Gaming = ({ navigation }) => {
             delete data.customWords;
             setMainInformation(data);
         })
-
         socket.on("participant.ready", (data) => {
             setParticipantReady(data.username);
         })
-
         socket.on("participant.joined", (data) => {
             addNewParticipant(data);
         })
-
         socket.on("participant.left", (data) => {
             removeParticipant(data.username);
         })
-
         socket.on("game.started", (data) => {
             console.log(data);
+            setImages(data.imageUrls);
         })
-
         socket.on("word.added", (data) => {
-            setCustomWords(data.wordCount)
-            console.log(data);
+            setCustomWords(data.wordCount);
+        })
+        socket.on("game.ended", (data) =>{
+            console.log("game ended",data);
         })
     }
 
@@ -106,17 +105,6 @@ const Gaming = ({ navigation }) => {
         })
     }
 
-    const addCustomWord = async () => {
-        const key = await AsyncStorage.getItem('RoomKey');
-        console.log("rooms/word?id="+ mainInformation.id + "&key=" + key + "&word=" + customWord);
-        await postRequest("rooms/word?id=" 
-        + mainInformation.id 
-        + "&key=" + key
-        + "&word=" + customWord).catch((error) =>{
-            console.log("egaa",error)
-        });
-    }
-
     useEffect(() => {
         setEvents();
         return () => {
@@ -135,24 +123,15 @@ const Gaming = ({ navigation }) => {
 
     return (
         <View style={GlobalStyles.container}>
-            <GameInformation mainInformation={mainInformation}
+            <GameInformation mainInformation={mainInformation} 
                 participants={participants}
                 customWords={customWords}
             />
 
-            {typeof (customWords) === "number" && <View style={{ flexDirection: "row" }}>
-                <TextInput style={{ ...GlobalStyles.input, width: "60%" }}
-                    value={customWords}
-                    onChangeText={setCustomWord}
-                    placeholder={"Custom Word"} />
-                <TouchableOpacity
-                    style={GlobalStyles.button}
-                    onPress={addCustomWord}
-                >
-                    <Text style={GlobalStyles.button.text}>Add</Text>
-                </TouchableOpacity>
-            </View>}
+            {typeof (customWords === "number") && <CustomWord  id={mainInformation.id}/>}
 
+            {images.length!=0 && <Images images={images} />}
+            {images.length!=0 && <GuessAnswer id={mainInformation.id}/>}
         </View>
     );
 }

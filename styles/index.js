@@ -43,6 +43,8 @@ export default GlobalStyles = StyleSheet.create({
         borderRadius:6,
         margin:10,
         alignItems:"center",
+        justifyContent:"center",
+        height:40,
         text:{
             fontSize:18,
             color:"white",
