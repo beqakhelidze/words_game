@@ -33,8 +33,8 @@ const ToastVisible = ({ visible, message }) => {
 const CreateRoom = ({ navigation }) => {
 
     const [username, setUsername] = useState("Guest");
-    const [Players, setPlayers] = useState(2);
-    const [Duration, setDuration] = useState(50);
+    const [Players, setPlayers] = useState(5);
+    const [Duration, setDuration] = useState(60);
     const [isHintsChecked, setHintsChecked] = useState(false);
     const [isCustomWordsChecked, setCustomWordsChecked] = useState(false);
     const [visibleToast, setVisibleToast] = useState({

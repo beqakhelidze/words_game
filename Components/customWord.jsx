@@ -18,7 +18,9 @@ const CustomWord = ({id}) => {
         await postRequest("rooms/word?id="
             + id
             + "&key=" + key
-            + "&word=" + customWord).catch((error) => {
+            + "&word=" + customWord).then(() =>{
+                setCustomWord("");
+            }).catch((error) => {
                 console.log(error)
             });
     }

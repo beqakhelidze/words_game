@@ -1,9 +1,7 @@
 import {
     View,
     Text,
-    StyleSheet,
     TextInput,
-    Button,
     TouchableOpacity,
     ToastAndroid
 } from "react-native";

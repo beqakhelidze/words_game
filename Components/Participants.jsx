@@ -5,7 +5,7 @@ import GlobalStyles from "../styles";
 const ParticipantItem = ({ item }) => (
     <View style={{
         flexDirection: "row",
-        margin:10,
+        margin: 10,
     }}>
         <Text style={{
             color: item.isReady ? "green" : "red",
@@ -15,7 +15,9 @@ const ParticipantItem = ({ item }) => (
         <Text style={{
             color: item.isReady ? "green" : "red",
             fontSize: 22,
-        }}>{item.username}</Text>
+        }}>{item.username}
+            {item.result ? "  #"+item.result : null}
+        </Text>
     </View>
 )
 
@@ -23,7 +25,7 @@ const ParticipantItem = ({ item }) => (
 const Participants = ({ modalVisible, setModalVisible, participants }) => {
 
     return (
-        <View style={styles.centeredView}>
+        <View style={GlobalStyles.centeredView}>
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -32,8 +34,8 @@ const Participants = ({ modalVisible, setModalVisible, participants }) => {
                     setModalVisible(!modalVisible);
                 }}
             >
-                <View style={styles.centeredView}>
-                    <View style={styles.modalView}>
+                <View style={GlobalStyles.centeredView}>
+                    <View style={GlobalStyles.modalView}>
                         {participants.map((item, index) => {
                             return (<ParticipantItem key={index} item={item} />)
                         })}
@@ -62,7 +64,7 @@ const styles = StyleSheet.create({
         backgroundColor: "white",
         borderRadius: 20,
         padding: 35,
-        paddingBottom:15,
+        paddingBottom: 15,
         alignItems: "center",
         shadowColor: "#000",
         shadowOffset: {

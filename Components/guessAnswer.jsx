@@ -29,9 +29,10 @@ const GuessAnswer = ({ id, setHints }) => {
             + "&key=" + key
             + "&guess=" + answer).then((data) => {
                 if (data.isCorrect){
-                    setHints(answer.split(""));
+                    setHints(answer.toUpperCase().split(""));
                 }
             }).catch((error) => {
+                console.log(error);
                 showToast();
             });
     }

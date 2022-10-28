@@ -3,6 +3,7 @@ import {
     View,
     StyleSheet,
     ActivityIndicator,
+    Text
 } from "react-native";
 import BASE_URL from "../apiConnection/baseUrl";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
@@ -15,14 +16,13 @@ import GuessAnswer from "../Components/guessAnswer";
 import GameInfoButtons from "../Components/gameInfoButtons";
 import CustomWord from "../Components/customWord";
 import Hints from "../Components/hints";
+import GameNotStarted from "../Components/gameNotStarted";
 
 let socket;
 
 const setSocket = async () => {
-
     const key = await AsyncStorage.getItem('RoomKey');
     const username = await AsyncStorage.getItem('Username');
-
     socket = io(BASE_URL + '/rooms?key=' + key + '&username=' + username,
         {
             transports: ["websocket", "polling"],
@@ -37,6 +37,8 @@ const Gaming = ({ navigation }) => {
     const [customWords, setCustomWords] = useState("");
     const [images, setImages] = useState([]);
     const [hints, setHints] = useState([]);
+    const [isReady, setIsReady] = useState(false);
+    const [correctAnswers, setCorrectAnswers] = useState(0);
 
     const showToast = (data) => {
         if (data.status == "wrong") {
@@ -52,7 +54,6 @@ const Gaming = ({ navigation }) => {
         }
     }
 
-
     const setEvents = async () => {
         await setSocket();
 
@@ -67,7 +68,6 @@ const Gaming = ({ navigation }) => {
             delete data.participants;
             delete data.customWords;
             setMainInformation(data);
-
         })
         socket.on("participant.ready", (data) => {
             setParticipantReady(data.username);
@@ -93,24 +93,27 @@ const Gaming = ({ navigation }) => {
             showToast(data);
         })
         socket.on("participant.guessed", (data) => {
-            data.status = "correct";
-            showToast(data);
+            participantGuessed(data);
         })
         socket.on("game.ended", (data) => {
             setHints(data.revealedWord.split(""));
-            setTimeout(() => {
-                setImages([]);
-                setHints([]);
-                if (typeof (customWords) == "number") {
-                    setCustomWords(0);
-                }
-                setParticipants((prev) => {
-                    return prev.map((item) => {
-                        return { ...item, isReady: false };
-                    })
-                })
-            }, 5000)
+            gameEnded();
         })
+    }
+
+    const participantGuessed = (data) => {
+        data.status = "correct";
+        let result;
+        setCorrectAnswers((prev) => {
+            result = prev + 1;
+            return prev + 1;
+        })
+        setParticipants((prev) => {
+            return prev.map((item) => {
+                return item.username == data.username ? { ...item, result: result } : item;
+            })
+        })
+        showToast(data);
     }
 
     const addNewParticipant = (value) => {
@@ -139,16 +142,32 @@ const Gaming = ({ navigation }) => {
         })
     }
 
-    const hintsController = (value) =>{
-        setHints((prev) =>{
-            const indicator = prev.findIndex((item) =>{
+    const hintsController = (value) => {
+        setHints((prev) => {
+            const indicator = prev.findIndex((item) => {
                 return item == null;
             });
-            if (indicator >=0){
+            if (indicator >= 0) {
                 return value;
             }
             return prev;
         })
+    }
+
+    const gameEnded = () => {
+        setTimeout(() => {
+            setImages([]);
+            setHints([]);
+            if (typeof (customWords) == "number") {
+                setCustomWords(0);
+            }
+            setIsReady(false);
+            setParticipants((prev) => {
+                return prev.map((item) => {
+                    return { ...item, isReady: false, result:undefined};
+                })
+            })
+        }, 6000)
     }
 
     useEffect(() => {
@@ -174,10 +193,15 @@ const Gaming = ({ navigation }) => {
                 customWords={customWords}
             />
             {typeof (customWords) == "number" && <CustomWord id={mainInformation.id} />}
+            {images.length == 0 &&  <GameNotStarted/> }
             {images.length != 0 && <Images images={images} />}
             {images.length != 0 && <GuessAnswer id={mainInformation.id} setHints={setHints} />}
             {mainInformation.hintsEnabled && <Hints hints={hints} />}
-            <GameInfoButtons participants={participants} mainInformation={mainInformation} />
+            <GameInfoButtons participants={participants}
+                mainInformation={mainInformation}
+                isReady={isReady}
+                setIsReady={setIsReady}
+            />
         </View>
     );
 }
