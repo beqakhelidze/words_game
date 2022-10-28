@@ -9,12 +9,13 @@ import {
 import {
     useState
 } from "react";
+import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Checkbox from 'expo-checkbox';
 import GlobalStyles from "../styles";
 import { postRequest } from "../apiConnection";
 
-const Toast = ({ visible, message }) => {
+const ToastVisible = ({ visible, message }) => {
     if (visible) {
         ToastAndroid.showWithGravityAndOffset(
             message,
@@ -32,8 +33,8 @@ const Toast = ({ visible, message }) => {
 const CreateRoom = ({ navigation }) => {
 
     const [username, setUsername] = useState("Guest");
-    const [Players, setPlayers] = useState(5);
-    const [Duration, setDuration] = useState(44);
+    const [Players, setPlayers] = useState(2);
+    const [Duration, setDuration] = useState(50);
     const [isHintsChecked, setHintsChecked] = useState(false);
     const [isCustomWordsChecked, setCustomWordsChecked] = useState(false);
     const [visibleToast, setVisibleToast] = useState({
@@ -122,7 +123,7 @@ const CreateRoom = ({ navigation }) => {
             </TouchableOpacity>
 
             <View>
-                <Toast visible={visibleToast.visibility} message={visibleToast.message} />
+                <ToastVisible visible={visibleToast.visibility} message={visibleToast.message} />
             </View>
         </View>
     );

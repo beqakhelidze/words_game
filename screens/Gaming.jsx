@@ -1,34 +1,29 @@
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useState, } from "react";
 import {
     View,
-    Text,
     StyleSheet,
-    TouchableOpacity,
-    TextInput,
     ActivityIndicator,
-    Image
 } from "react-native";
+import BASE_URL from "../apiConnection/baseUrl";
+import { Toast } from "react-native-toast-message/lib/src/Toast";
 import GlobalStyles from "../styles";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import io from 'socket.io-client';
 import GameInformation from "../Components/GameInformation";
 import Images from "../Components/images";
-import { postRequest } from "../apiConnection/postRequest";
 import GuessAnswer from "../Components/guessAnswer";
+import GameInfoButtons from "../Components/gameInfoButtons";
 import CustomWord from "../Components/customWord";
+import Hints from "../Components/hints";
 
 let socket;
-
-const stringReplaceAt = (str, index, replacement) => {
-    return str.substring(0, index) + replacement + str.substring(index + replacement.length);
-}
 
 const setSocket = async () => {
 
     const key = await AsyncStorage.getItem('RoomKey');
     const username = await AsyncStorage.getItem('Username');
 
-    socket = io('http://10.127.3.71:3000/rooms?key=' + key + '&username=' + username,
+    socket = io(BASE_URL + '/rooms?key=' + key + '&username=' + username,
         {
             transports: ["websocket", "polling"],
         },
@@ -40,8 +35,23 @@ const Gaming = ({ navigation }) => {
     const [mainInformation, setMainInformation] = useState(undefined);
     const [participants, setParticipants] = useState([]);
     const [customWords, setCustomWords] = useState("");
-    const [hintString, setHintString] = useState("______");
     const [images, setImages] = useState([]);
+    const [hints, setHints] = useState([]);
+
+    const showToast = (data) => {
+        if (data.status == "wrong") {
+            Toast.show({
+                type: 'success',
+                text1: data.username + " submitted " + data.status + " answer: " + data.guess,
+            });
+        } else {
+            Toast.show({
+                type: 'success',
+                text1: data.username + " submitted " + data.status + " answer!",
+            });
+        }
+    }
+
 
     const setEvents = async () => {
         await setSocket();
@@ -57,6 +67,7 @@ const Gaming = ({ navigation }) => {
             delete data.participants;
             delete data.customWords;
             setMainInformation(data);
+
         })
         socket.on("participant.ready", (data) => {
             setParticipantReady(data.username);
@@ -68,14 +79,37 @@ const Gaming = ({ navigation }) => {
             removeParticipant(data.username);
         })
         socket.on("game.started", (data) => {
-            console.log(data);
             setImages(data.imageUrls);
+            setHints(data.hiddenWord)
         })
         socket.on("word.added", (data) => {
             setCustomWords(data.wordCount);
         })
-        socket.on("game.ended", (data) =>{
-            console.log("game ended",data);
+        socket.on("letter.revealed", (data) => {
+            hintsController(data.hiddenWord);
+        })
+        socket.on("guess.submitted", (data) => {
+            data.status = "wrong";
+            showToast(data);
+        })
+        socket.on("participant.guessed", (data) => {
+            data.status = "correct";
+            showToast(data);
+        })
+        socket.on("game.ended", (data) => {
+            setHints(data.revealedWord.split(""));
+            setTimeout(() => {
+                setImages([]);
+                setHints([]);
+                if (typeof (customWords) == "number") {
+                    setCustomWords(0);
+                }
+                setParticipants((prev) => {
+                    return prev.map((item) => {
+                        return { ...item, isReady: false };
+                    })
+                })
+            }, 5000)
         })
     }
 
@@ -105,6 +139,18 @@ const Gaming = ({ navigation }) => {
         })
     }
 
+    const hintsController = (value) =>{
+        setHints((prev) =>{
+            const indicator = prev.findIndex((item) =>{
+                return item == null;
+            });
+            if (indicator >=0){
+                return value;
+            }
+            return prev;
+        })
+    }
+
     useEffect(() => {
         setEvents();
         return () => {
@@ -123,15 +169,15 @@ const Gaming = ({ navigation }) => {
 
     return (
         <View style={GlobalStyles.container}>
-            <GameInformation mainInformation={mainInformation} 
+            <GameInformation mainInformation={mainInformation}
                 participants={participants}
                 customWords={customWords}
             />
-
-            {typeof (customWords === "number") && <CustomWord  id={mainInformation.id}/>}
-
-            {images.length!=0 && <Images images={images} />}
-            {images.length!=0 && <GuessAnswer id={mainInformation.id}/>}
+            {typeof (customWords) == "number" && <CustomWord id={mainInformation.id} />}
+            {images.length != 0 && <Images images={images} />}
+            {images.length != 0 && <GuessAnswer id={mainInformation.id} setHints={setHints} />}
+            {mainInformation.hintsEnabled && <Hints hints={hints} />}
+            <GameInfoButtons participants={participants} mainInformation={mainInformation} />
         </View>
     );
 }

@@ -7,8 +7,6 @@ import {
 
 const Images = ({ images }) => {
 
-    console.log(images);
-
     return (
         <View style={styles.images}>
             {images.map((item, index) => {
@@ -35,7 +33,7 @@ const styles = StyleSheet.create({
         alignItems: "center"
     },
     image: {
-        marginVertical: 13,
+        marginVertical: 9,
         width: "40%",
         height:110
     },

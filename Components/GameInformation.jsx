@@ -1,21 +1,13 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity,} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { putRequest } from "../apiConnection";
 import GlobalStyles from "../styles";
 import Participants from "./Participants";
 
-const GameInformation = ({ mainInformation, participants, customWords, }) => {
+const GameInformation = ({ mainInformation,  customWords, }) => {
 
     if (!mainInformation) return null;
-
-    const [seeParticipants, setSeeParticipants] = useState(false);
-
-    const setReady = async () => {
-        const key = await AsyncStorage.getItem("RoomKey");
-        console.log(key);
-        putRequest("rooms/ready?id=" + mainInformation.id + "&key=" + key);
-    }
 
     return (
         <View style={styles.containerWithoutFlex}>
@@ -26,7 +18,7 @@ const GameInformation = ({ mainInformation, participants, customWords, }) => {
                 </View>
                 <View style={styles.gameInfo.section}>
                     <Text style={styles.gameInfo.section.text}>
-                        Custom Words:{customWords}
+                        Custom Words:{typeof(customWords) == "number" ? customWords: "off"}
                     </Text>
                     <Text style={styles.gameInfo.section.text}>
                         Hints enabled mode:{mainInformation.hintsEnabled ? "on" : "off"}
@@ -34,48 +26,30 @@ const GameInformation = ({ mainInformation, participants, customWords, }) => {
                 </View>
             </View>
 
-            <View style={GlobalStyles.flexDirectionRow}>
-                <TouchableOpacity
-                    style={{ ...GlobalStyles.button, width: "38%" }}
-                    onPress={() => setSeeParticipants(true)}
-                >
-                    <Text style={GlobalStyles.button.text}>See Participants</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={{ ...GlobalStyles.button, width: "38%" }}
-                    onPress={setReady}
-                >
-                    <Text style={GlobalStyles.button.text}>Ready</Text>
-                </TouchableOpacity>
-            </View>
-
-            {seeParticipants && <Participants modalVisible={seeParticipants}
-                setModalVisible={setSeeParticipants}
-                participants={participants} />}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    containerWithoutFlex:{
-        flexDirection:"column",
-        justifyContent:"center",
-        textAlign:"center",
-        alignItems:"center",
-        marginTop:6,
+    containerWithoutFlex: {
+        flexDirection: "column",
+        justifyContent: "center",
+        textAlign: "center",
+        alignItems: "center",
+        marginTop: 6,
     },
     gameInfo: {
-        width:"90%",
+        width: "90%",
         flexDirection: "row",
-        justifyContent:"space-evenly",
+        justifyContent: "space-evenly",
         section: {
             marginHorizontal: 10,
             text: {
                 fontSize: 17,
             }
         }
-    }
+    },
+   
 })
 
 

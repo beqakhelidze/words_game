@@ -33,7 +33,7 @@ const Toast = ({ visible, message }) => {
 const JoinRoom = ({ navigation }) => {
 
     const [roomKey, setRoomKey] = useState("");
-    const [username, setUsername] = useState("");
+    const [username, setUsername] = useState("Guest");
     const [visibleToast, setVisibleToast] = useState({
         visibility: false,
         message: "",
